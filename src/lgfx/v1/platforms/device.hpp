@@ -39,6 +39,7 @@ Contributors:
  #else
 
   #include "esp32/Light_PWM.hpp"
+  #include "esp32/Light_I2C.hpp"
   #include "esp32/Bus_SPI.hpp"
   #include "esp32/Bus_I2C.hpp"
   #include "esp32/Bus_Parallel8.hpp"

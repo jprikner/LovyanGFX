@@ -23,6 +23,6 @@ file(GLOB SRCS
      src/lgfx/v1/touch/*.cpp
      )
 set(COMPONENT_SRCS ${SRCS})
-set(COMPONENT_REQUIRES nvs_flash efuse)
+set(COMPONENT_REQUIRES nvs_flash efuse i2c_manager)
 
 register_component()
