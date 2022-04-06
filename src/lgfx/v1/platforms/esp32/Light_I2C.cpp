@@ -15,6 +15,9 @@ Contributors:
  [mongonta0716](https://github.com/mongonta0716)
  [tobozo](https://github.com/tobozo)
 /----------------------------------------------------------------------------*/
+
+#define ESP_PLATFORM
+
 #if defined (ESP_PLATFORM)
 #include <sdkconfig.h>
 #if !defined (CONFIG_IDF_TARGET) || defined (CONFIG_IDF_TARGET_ESP32) || defined (CONFIG_IDF_TARGET_ESP32S2) || defined (CONFIG_IDF_TARGET_ESP32C3)
@@ -27,6 +30,8 @@ Contributors:
  #include <driver/ledc.h>
 #endif
 
+//----------------------------------------------------------------------------
+
 namespace lgfx
 {
  inline namespace v1
@@ -36,12 +41,13 @@ namespace lgfx
 
   bool Light_I2C::init ( uint8_t brightness )
   {
-	
-	  buf = 0x01 ;
-    i2c_manager_write ( I2C_NUM_0, LCD_BL_ADDR, BL_GP_REG, &buf, 1 ) ;
-
-    setBrightness (brightness) ;
-  	printf ("Light I2C: init.\n") ;
+	/* LM27965 LED driver */
+	if ( _cfg.led_driver == LM27965 )
+	{
+		buf = 0x01 ;
+		i2c_manager_write ( _cfg.i2c_port, _cfg.i2c_addr, LM27965_BL_GP_REG, &buf, 1 ) ;
+		setBrightness (brightness) ;
+	}
     
     return true;
   }
@@ -51,23 +57,26 @@ namespace lgfx
   void Light_I2C::setBrightness ( uint8_t brightness )
   {
     if (_cfg.invert) brightness = ~brightness ;
-	  
-    buf = 0x01 ;
-    i2c_manager_write ( I2C_NUM_0, LCD_BL_ADDR, BL_GP_REG, &buf, 1 ) ;
-    
-    buf = calculateBrightness (brightness) ;
-    i2c_manager_write ( I2C_NUM_0, LCD_BL_ADDR, BANK_A_BL_CTRL, &buf, 1 ) ;
-
-  	printf ( "Light I2C: changed brightness to %d, hex: %x\n", brightness, buf ) ;
-
-    // i2c_manager_read ( I2C_NUM_0, 0x36, 0x10, &buffer, 1 ) ;
+	
+	/* LM27965 LED driver */
+    if ( _cfg.led_driver == LM27965 )
+	{ 
+		buf = 0x01 ;
+		i2c_manager_write ( _cfg.i2c_port, _cfg.i2c_addr, LM27965_BL_GP_REG, &buf, 1 ) ;
+		
+		buf = calculateBrightness (brightness) ;
+		i2c_manager_write ( _cfg.i2c_port, _cfg.i2c_addr, LM27965_BANK_A_BL_CTRL, &buf, 1 ) ;
+    }
   }
 
   //----------------------------------------------------------------------------
   
   uint8_t Light_I2C::calculateBrightness ( uint8_t input )
   {
-	  return ( ( ( input * DRIVER_STEPS ) / INPUT_STEPS ) ) ;
+    // on invalid input or steps config set to ~50 % brightness:
+    if ( input < 0 || LM27965_DRIVER_STEPS <= 0 || INPUT_STEPS <= 0 ) return 0x18 ;
+
+	  return ( ( input * LM27965_DRIVER_STEPS ) / INPUT_STEPS ) ;
   }
 
   //----------------------------------------------------------------------------
