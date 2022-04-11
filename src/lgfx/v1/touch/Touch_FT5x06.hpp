@@ -47,10 +47,9 @@ namespace lgfx
 
     bool _flg_released = false;
 
-    bool _check_init(void);
     bool _write_reg(uint8_t reg, uint8_t val);
 
-    bool _read_reg(uint8_t reg, uint8_t *data, size_t length);
+    bool _read_reg(uint8_t reg, uint8_t data, size_t length);
   };
 
 //----------------------------------------------------------------------------
